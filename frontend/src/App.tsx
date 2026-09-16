@@ -1,6 +1,4 @@
-// PaperTrail Main Application Component
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DocumentClause, CitationTarget, LegalVertical } from './types/index.ts';
 import { DocumentViewer } from './components/DocumentViewer.tsx';
 import { TargetedQA } from './components/TargetedQA.tsx';
@@ -9,6 +7,8 @@ import { CompareView } from './components/CompareView.tsx';
 import { LegalAidNavigator } from './components/LegalAidNavigator.tsx';
 import { DraftingView } from './components/DraftingView.tsx';
 import { LanguageSelector } from './components/LanguageSelector.tsx';
+import { UploadModal } from './components/UploadModal.tsx';
+import { AuthModal, AuthUser } from './components/AuthModal.tsx';
 import { extractClausesFromText } from './services/pdfExtractor.ts';
 import {
   UploadCloud,
@@ -17,6 +17,7 @@ import {
   ArrowLeftRight,
   Scale,
   FileEdit,
+  User,
 } from 'lucide-react';
 import './styles/index.css';
 
@@ -57,8 +58,25 @@ export const App: React.FC = () => {
   const [detectedVertical, setDetectedVertical] = useState<LegalVertical>('rental');
   const [citationTarget, setCitationTarget] = useState<CitationTarget | null>(null);
 
+  // Modals state
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+
+  // Restore session from localStorage on startup
+  useEffect(() => {
+    try {
+      const savedUser = localStorage.getItem('papertrail_user');
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+    } catch (err) {
+      console.warn('Failed to restore auth user:', err);
+    }
+  }, []);
+
   // Initialize with rental agreement sample clauses
-  React.useEffect(() => {
+  useEffect(() => {
     loadSampleContract('rental_agreement.pdf', 'rental');
   }, []);
 
@@ -83,35 +101,6 @@ export const App: React.FC = () => {
     setRawText(SAMPLE_LEASE_TEXT);
     const extracted = await extractClausesFromText(SAMPLE_LEASE_TEXT, fileName);
     setClauses(extracted);
-  }
-
-  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type === 'application/pdf') {
-      setUploadedFile(file);
-      setRawText('');
-      // In production, pdfjs or edge OCR extracts clauses
-      // For now, extract preview clauses
-      const extracted = await extractClausesFromText(
-        `Uploaded Document: ${file.name}\nClause 1: Term and Notice Period is 30 days.\nClause 2: Security deposit is refundable within 15 days.\nClause 3: Non-compete and penalty restrictions are void under Section 27.`,
-        file.name
-      );
-      setClauses(extracted);
-      if (file.name.toLowerCase().includes('offer') || file.name.toLowerCase().includes('emp')) {
-        setDetectedVertical('employment');
-      }
-    } else {
-      const text = await file.text();
-      setUploadedFile(null);
-      setRawText(text);
-      const extracted = await extractClausesFromText(text, file.name);
-      setClauses(extracted);
-      if (text.toLowerCase().includes('employee')) {
-        setDetectedVertical('employment');
-      }
-    }
   }
 
   return (
@@ -167,7 +156,7 @@ export const App: React.FC = () => {
           </button>
         </nav>
 
-        {/* Controls: Sample selector, Language & Document Upload */}
+        {/* Controls: Sample selector, Language, Upload & Auth */}
         <div className="nav-controls">
           <select
             className="btn-secondary"
@@ -185,20 +174,68 @@ export const App: React.FC = () => {
               </option>
             ))}
           </select>
+
           <LanguageSelector
             selectedLanguage={selectedLanguage}
             onSelectLanguage={setSelectedLanguage}
           />
-          <label className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.82rem', cursor: 'pointer' }}>
+
+          {/* Prominent Upload Contract Button */}
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setIsUploadModalOpen(true)}
+            title="Upload any PDF or TXT contract"
+            style={{ padding: '6px 12px', fontSize: '0.82rem', gap: 6 }}
+            aria-label="Upload Document"
+          >
             <UploadCloud size={14} />
             <span>Upload Document</span>
-            <input
-              type="file"
-              accept=".pdf,.txt,.doc"
-              onChange={handleFileUpload}
-              style={{ display: 'none' }}
-            />
-          </label>
+          </button>
+
+          {/* User Profile / Authentication Button */}
+          {currentUser ? (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => setIsAuthModalOpen(true)}
+              style={{
+                padding: '5px 10px',
+                fontSize: '0.82rem',
+                gap: 6,
+                borderColor: 'var(--accent-primary)',
+              }}
+              title="User Account"
+            >
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: 'var(--accent-primary)',
+                  color: '#fff',
+                  fontSize: '0.72rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 700,
+                }}
+              >
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+              <span>{currentUser.name.split(' ')[0]}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => setIsAuthModalOpen(true)}
+              style={{ padding: '6px 14px', fontSize: '0.82rem', gap: 6 }}
+            >
+              <User size={14} />
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -213,6 +250,7 @@ export const App: React.FC = () => {
                 selectedLanguage={selectedLanguage}
                 onSelectCitation={(target) => setCitationTarget({ ...target })}
                 detectedVertical={detectedVertical}
+                onOpenUpload={() => setIsUploadModalOpen(true)}
               />
             </section>
 
@@ -237,6 +275,32 @@ export const App: React.FC = () => {
 
         {activeTab === 'drafting' && <DraftingView />}
       </main>
+
+      {/* Upload Document Modal */}
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onDocumentLoaded={(file, extractedClauses, vertical, textFallback) => {
+          setUploadedFile(file);
+          setRawText(textFallback || '');
+          setClauses(extractedClauses);
+          setDetectedVertical(vertical);
+          setCitationTarget(null);
+        }}
+      />
+
+      {/* User Login & Registration Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={(user) => setCurrentUser(user)}
+        currentUser={currentUser}
+        onSignOut={() => {
+          setCurrentUser(null);
+          localStorage.removeItem('papertrail_user');
+        }}
+      />
     </div>
   );
 };
+

@@ -21,6 +21,8 @@ interface TargetedQAProps {
   selectedLanguage: string;
   onSelectCitation: (target: CitationTarget) => void;
   detectedVertical: LegalVertical;
+  onOpenUpload?: () => void;
+  activeDocumentName?: string;
 }
 
 const SAMPLE_QUESTIONS = [
@@ -36,6 +38,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
   selectedLanguage,
   onSelectCitation,
   detectedVertical,
+  onOpenUpload,
 }) => {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,9 +89,22 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
             <Sparkles size={20} color="var(--accent-primary)" />
             Targeted Legal Q&A
           </h2>
-          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Vertical: <strong style={{ color: 'var(--text-primary)' }}>{detectedVertical}</strong>
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Vertical: <strong style={{ color: 'var(--text-primary)' }}>{detectedVertical}</strong>
+            </span>
+            {onOpenUpload && (
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onOpenUpload}
+                style={{ padding: '3px 8px', fontSize: '0.75rem', gap: 4 }}
+                title="Upload any PDF or TXT contract"
+              >
+                <span>+ Upload Contract</span>
+              </button>
+            )}
+          </div>
         </div>
         <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: 4 }}>
           Ask specific questions. Every answer is grounded directly in your uploaded document or hand-curated Indian statutes.
