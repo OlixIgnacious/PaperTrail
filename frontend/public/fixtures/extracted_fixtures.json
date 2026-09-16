@@ -1,0 +1,334 @@
+{
+  "rental_agreement.pdf": [
+    {
+      "clause_id": "CL_1",
+      "clause_text": "RESIDENTIAL TENANCY AGREEMENT This Agreement is made on 1st January 2026 at Bengaluru, Karnataka between Smt. Lakshmi R (Landlord) and Sri Karthik Menon (Tenant).",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.9145,
+          0.159
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_2",
+      "clause_text": "1. TERM & NOTICE PERIOD The tenancy shall be for a period of 11 months commencing from 1st January 2026. Either party may terminate this agreement by providing a minimum of 30 (thirty) days written notice to the other party without assigning reasons.",
+      "clause_category": "termination",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.9089,
+          0.2956
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_3",
+      "clause_text": "2. SECURITY DEPOSIT The Tenant has paid an amount of INR 50,000 (Fifty Thousand Rupees), equivalent to two months rent, as refundable interest-free security deposit. The Landlord covenants to refund the deposit in full within 15 days of peaceful vacation and key handover.",
+      "clause_category": "payment_terms",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.3444,
+          0.9005,
+          0.4144
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_4",
+      "clause_text": "3. ESSENTIAL UTILITIES & SERVICES The Landlord covenants not to withhold or cut off any essential supply or service including water, electricity, elevator, or access stairs during the subsistence of this tenancy under Section 20 of Model Tenancy Act.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.4632,
+          0.8818,
+          0.5152
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_5",
+      "clause_text": "4. MAINTENANCE & STRUCTURAL REPAIRS Structural repairs, major external seepage, and roof dampness remain the sole financial obligation of the Landlord. The Tenant shall undertake routine minor electrical and plumbing maintenance.",
+      "clause_category": "obligations",
+      "page_number": 2,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.8594,
+          0.159
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_6",
+      "clause_text": "5. DISPUTE JURISDICTION Any dispute arising hereunder shall be referred to the Rent Authority and Rent Tribunal established under the Karnataka Rent Control / Model Tenancy Act provisions at Bengaluru.",
+      "clause_category": "dispute_resolution",
+      "page_number": 2,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.8949,
+          0.2777
+        ]
+      }
+    }
+  ],
+  "employment_offer.pdf": [
+    {
+      "clause_id": "CL_1",
+      "clause_text": "APPOINTMENT AND OFFER LETTER - TECHSOLVE INDIA PVT LTD Date: 15th January 2026. Employee: Vikram Malhotra. Designation: Principal Systems Architect.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.7995,
+          0.1411
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_2",
+      "clause_text": "1. PROBATION & NOTICE PERIOD You will be on probation for 3 months. Post confirmation, either party may terminate employment by serving 60 (sixty) days prior written notice or gross salary in lieu thereof upon mutual consent.",
+      "clause_category": "termination",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.906,
+          0.2777
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_3",
+      "clause_text": "2. POST-TERMINATION NON-COMPETE COVENANT The Employee agrees that for a period of 24 months following separation from the Company, they shall not directly or indirectly accept employment with any competing software firm in India.",
+      "clause_category": "termination",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.3444,
+          0.8771,
+          0.3965
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_4",
+      "clause_text": "3. STATUTORY WAGE DEDUCTIONS Deductions from monthly salary shall strictly comply with Code on Wages 2019 Section 18, and aggregate deductions shall never exceed fifty (50) percent of total monthly wages.",
+      "clause_category": "payment_terms",
+      "page_number": 2,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.8724,
+          0.159
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_5",
+      "clause_text": "4. GRATUITY & RETIREMENT BENEFITS Upon continuous service exceeding 5 years, statutory gratuity shall be payable in accordance with the Payment of Gratuity Act 1972.",
+      "clause_category": "payment_terms",
+      "page_number": 2,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.9117,
+          0.2777
+        ]
+      }
+    }
+  ],
+  "gig_platform_terms.pdf": [
+    {
+      "clause_id": "CL_1",
+      "clause_text": "AGGREGATOR PLATFORM PARTNER AGREEMENT Between UrbanRide Logistics Technologies Pvt Ltd and Registered Driver Partner.",
+      "clause_category": "procedural_validity",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.6987,
+          0.1411
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_2",
+      "clause_text": "1. COMMISSION AND FARE TRANSPARENCY The Platform shall deduct a maximum commission not exceeding twenty (20) percent of total gross fare per ride, in compliance with Central Motor Vehicle Aggregator Guidelines.",
+      "clause_category": "payment_terms",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.8808,
+          0.2777
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_3",
+      "clause_text": "2. ARBITRARY ACCOUNT DEACTIVATION The Platform shall not deactivate or de-board any driver partner without providing written grounds and 7 days prior intimation, except in proven safety emergencies.",
+      "clause_category": "termination",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.3444,
+          0.8939,
+          0.3965
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_4",
+      "clause_text": "3. GRIEVANCE REDRESSAL MECHANISM A designated state grievance officer shall investigate and resolve partner payout and rating disputes within a statutory timeline of seven working days.",
+      "clause_category": "dispute_resolution",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.4632,
+          0.8884,
+          0.5152
+        ]
+      }
+    }
+  ],
+  "consumer_warranty.pdf": [
+    {
+      "clause_id": "CL_1",
+      "clause_text": "CONSUMER APPLIANCE PURCHASE & WARRANTY INVOICE Issued by Apex Retailers Ltd to Consumer Smt. Ananya Sen. Invoice No: APX-98214.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.723,
+          0.1411
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_2",
+      "clause_text": "1. CANCELLATION CHARGES LIMIT If order cancellation is initiated prior to item dispatch, no cancellation charges exceeding actual bank processing fee shall be deducted under Consumer Protection E-Commerce Rules.",
+      "clause_category": "payment_terms",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.9145,
+          0.2777
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_3",
+      "clause_text": "2. DEFICIENCY IN SERVICE & PRODUCT LIABILITY The manufacturer guarantees replacement or full refund within 14 days if the delivered product develops manufacturing defects within warranty period under CPA 2019.",
+      "clause_category": "payment_terms",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.3444,
+          0.8584,
+          0.3965
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_4",
+      "clause_text": "3. ONLINE COMPLAINTS (E-DAAKHIL) In the event of unresolved deficiency, the consumer retains statutory right to file electronic complaints via the National e-Daakhil Consumer Forum without lawyer representation.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.4632,
+          0.8902,
+          0.5152
+        ]
+      }
+    }
+  ],
+  "traffic_echallan.pdf": [
+    {
+      "clause_id": "CL_1",
+      "clause_text": "TRAFFIC POLICE DEPARTMENT - ELECTRONIC VIOLATION NOTICE Notice No: KA-01-2026-CHAL-4819. Vehicle No: KA-01-MJ-2024.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.1069,
+          0.6275,
+          0.1411
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_2",
+      "clause_text": "1. NOTICE OF ALLEGED OFFENSE Alleged violation of Rule 119 Motor Vehicles Act for failure to produce physical documents on demand.",
+      "clause_category": "obligations",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.2257,
+          0.8463,
+          0.2598
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_3",
+      "clause_text": "2. DIGITAL DOCUMENT ACCEPTANCE As per Rule 139 of Central Motor Vehicles Rules and MoRTH Notification, valid electronic certificates presented via DigiLocker or mParivahan apps are legally equivalent to physical documents.",
+      "clause_category": "procedural_validity",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.3444,
+          0.9135,
+          0.3965
+        ]
+      }
+    },
+    {
+      "clause_id": "CL_4",
+      "clause_text": "3. VIRTUAL COURT CONTEST & COMPOUNDING Notice recipient may contest this fine online before the Virtual Traffic Court or settle via Lok Adalat without physical court appearance.",
+      "clause_category": "dispute_resolution",
+      "page_number": 1,
+      "position": {
+        "bbox": [
+          0.084,
+          0.4632,
+          0.8696,
+          0.5152
+        ]
+      }
+    }
+  ]
+}

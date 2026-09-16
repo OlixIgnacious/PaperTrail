@@ -1,0 +1,242 @@
+// PaperTrail Main Application Component
+
+import React, { useState } from 'react';
+import { DocumentClause, CitationTarget, LegalVertical } from './types/index.ts';
+import { DocumentViewer } from './components/DocumentViewer.tsx';
+import { TargetedQA } from './components/TargetedQA.tsx';
+import { DocumentReport } from './components/DocumentReport.tsx';
+import { CompareView } from './components/CompareView.tsx';
+import { LegalAidNavigator } from './components/LegalAidNavigator.tsx';
+import { DraftingView } from './components/DraftingView.tsx';
+import { LanguageSelector } from './components/LanguageSelector.tsx';
+import { extractClausesFromText } from './services/pdfExtractor.ts';
+import {
+  UploadCloud,
+  HelpCircle,
+  Activity,
+  ArrowLeftRight,
+  Scale,
+  FileEdit,
+} from 'lucide-react';
+import './styles/index.css';
+
+type ActiveTab = 'qa' | 'report' | 'compare' | 'legalaid' | 'drafting';
+
+const SAMPLE_LEASE_TEXT = `RESIDENTIAL LEASE AGREEMENT
+This Tenancy Agreement is entered into on 1st January 2026 between Landlord and Tenant for the premises located at Indiranagar, Bengaluru, Karnataka.
+
+1. TERM & POSSESSION
+The tenancy shall commence from 1st January 2026 and expire on 31st December 2026. Either party may terminate this agreement by providing a minimum of 30 (thirty) days written notice to the other party.
+
+2. RENT & SECURITY DEPOSIT
+The Monthly Rent shall be INR 25,000 payable by the 5th of each calendar month. The Tenant has deposited a Security Deposit of INR 50,000, equivalent to strictly two months rent, refundable in full within 15 days of peaceful handover of keys upon tenancy termination.
+
+3. UTILITIES & ESSENTIAL SERVICES
+The Landlord covenants not to withhold or cut off any essential supply or service, including water supply, electricity, or stairway access, during the subsistence of this tenancy under any circumstances.
+
+4. MAINTENANCE & REPAIRS
+The Landlord agrees to undertake all major structural repairs, dampness treatments, and external maintenance at own expense. The Tenant shall be responsible for routine day-to-day maintenance, minor electrical bulb replacements, and interior cleanliness.
+
+5. DISPUTE RESOLUTION
+Any dispute arising from or related to this tenancy agreement shall be subject to the exclusive jurisdiction of the Rent Authority and Rent Tribunal established under the Karnataka Rent / Model Tenancy Act provisions.`;
+
+const SAMPLE_CONTRACTS = [
+  { label: 'Sample: Rental Lease (PDF)', file: 'rental_agreement.pdf', vertical: 'rental' as LegalVertical },
+  { label: 'Sample: Employment Offer (PDF)', file: 'employment_offer.pdf', vertical: 'employment' as LegalVertical },
+  { label: 'Sample: Gig Partner Terms (PDF)', file: 'gig_platform_terms.pdf', vertical: 'gig' as LegalVertical },
+  { label: 'Sample: Appliance Warranty (PDF)', file: 'consumer_warranty.pdf', vertical: 'consumer' as LegalVertical },
+  { label: 'Sample: Traffic E-Challan (PDF)', file: 'traffic_echallan.pdf', vertical: 'challan' as LegalVertical },
+];
+
+export const App: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('qa');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [uploadedFile, setUploadedFile] = useState<File | string | null>('/fixtures/rental_agreement.pdf');
+  const [rawText, setRawText] = useState<string>('');
+  const [clauses, setClauses] = useState<DocumentClause[]>([]);
+  const [detectedVertical, setDetectedVertical] = useState<LegalVertical>('rental');
+  const [citationTarget, setCitationTarget] = useState<CitationTarget | null>(null);
+
+  // Initialize with rental agreement sample clauses
+  React.useEffect(() => {
+    loadSampleContract('rental_agreement.pdf', 'rental');
+  }, []);
+
+  async function loadSampleContract(fileName: string, vertical: LegalVertical) {
+    try {
+      setUploadedFile(`/fixtures/${fileName}`);
+      setRawText('');
+      setDetectedVertical(vertical);
+      const res = await fetch('/fixtures/extracted_fixtures.json');
+      if (res.ok) {
+        const data = await res.json();
+        if (data[fileName]) {
+          setClauses(data[fileName]);
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load pre-extracted fixture JSON:', err);
+    }
+    // Fallback to text
+    setUploadedFile(null);
+    setRawText(SAMPLE_LEASE_TEXT);
+    const extracted = await extractClausesFromText(SAMPLE_LEASE_TEXT, fileName);
+    setClauses(extracted);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type === 'application/pdf') {
+      setUploadedFile(file);
+      setRawText('');
+      // In production, pdfjs or edge OCR extracts clauses
+      // For now, extract preview clauses
+      const extracted = await extractClausesFromText(
+        `Uploaded Document: ${file.name}\nClause 1: Term and Notice Period is 30 days.\nClause 2: Security deposit is refundable within 15 days.\nClause 3: Non-compete and penalty restrictions are void under Section 27.`,
+        file.name
+      );
+      setClauses(extracted);
+      if (file.name.toLowerCase().includes('offer') || file.name.toLowerCase().includes('emp')) {
+        setDetectedVertical('employment');
+      }
+    } else {
+      const text = await file.text();
+      setUploadedFile(null);
+      setRawText(text);
+      const extracted = await extractClausesFromText(text, file.name);
+      setClauses(extracted);
+      if (text.toLowerCase().includes('employee')) {
+        setDetectedVertical('employment');
+      }
+    }
+  }
+
+  return (
+    <div className="app-container">
+      {/* Top Navbar */}
+      <header className="navbar">
+        <div className="brand-section">
+          <div className="brand-logo">PT</div>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="brand-title">PaperTrail</span>
+              <span className="brand-badge">Grounded Legal Aid</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <nav className="tabs-nav" aria-label="Main Navigation">
+          <button
+            className={`tab-btn ${activeTab === 'qa' ? 'active' : ''}`}
+            onClick={() => setActiveTab('qa')}
+          >
+            <HelpCircle size={15} />
+            <span>Targeted Q&A</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`}
+            onClick={() => setActiveTab('report')}
+          >
+            <Activity size={15} />
+            <span>Health Report</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'compare' ? 'active' : ''}`}
+            onClick={() => setActiveTab('compare')}
+          >
+            <ArrowLeftRight size={15} />
+            <span>Compare</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'legalaid' ? 'active' : ''}`}
+            onClick={() => setActiveTab('legalaid')}
+          >
+            <Scale size={15} />
+            <span>Legal Aid (DLSA)</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'drafting' ? 'active' : ''}`}
+            onClick={() => setActiveTab('drafting')}
+          >
+            <FileEdit size={15} />
+            <span>Notice Drafter</span>
+          </button>
+        </nav>
+
+        {/* Controls: Sample selector, Language & Document Upload */}
+        <div className="nav-controls">
+          <select
+            className="btn-secondary"
+            style={{ padding: '6px 10px', fontSize: '0.82rem', outline: 'none', cursor: 'pointer' }}
+            onChange={(e) => {
+              const selected = SAMPLE_CONTRACTS.find((c) => c.file === e.target.value);
+              if (selected) loadSampleContract(selected.file, selected.vertical);
+            }}
+            defaultValue="rental_agreement.pdf"
+            aria-label="Select sample contract"
+          >
+            {SAMPLE_CONTRACTS.map((c) => (
+              <option key={c.file} value={c.file}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <LanguageSelector
+            selectedLanguage={selectedLanguage}
+            onSelectLanguage={setSelectedLanguage}
+          />
+          <label className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.82rem', cursor: 'pointer' }}>
+            <UploadCloud size={14} />
+            <span>Upload Document</span>
+            <input
+              type="file"
+              accept=".pdf,.txt,.doc"
+              onChange={handleFileUpload}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+      </header>
+
+      {/* Main View Area */}
+      <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {activeTab === 'qa' && (
+          <div className="split-view-container">
+            {/* Left Hero Pane: Targeted Q&A */}
+            <section className="panel-qa">
+              <TargetedQA
+                documentClauses={clauses}
+                selectedLanguage={selectedLanguage}
+                onSelectCitation={(target) => setCitationTarget({ ...target })}
+                detectedVertical={detectedVertical}
+              />
+            </section>
+
+            {/* Right Pane: Document Viewer with Jump-to-Source (FR-21, FR-22) */}
+            <section className="panel-viewer">
+              <DocumentViewer
+                file={uploadedFile}
+                citationTarget={citationTarget}
+                rawTextFallback={rawText}
+              />
+            </section>
+          </div>
+        )}
+
+        {activeTab === 'report' && (
+          <DocumentReport clauses={clauses} vertical={detectedVertical} />
+        )}
+
+        {activeTab === 'compare' && <CompareView />}
+
+        {activeTab === 'legalaid' && <LegalAidNavigator />}
+
+        {activeTab === 'drafting' && <DraftingView />}
+      </main>
+    </div>
+  );
+};

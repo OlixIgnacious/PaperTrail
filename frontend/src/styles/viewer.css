@@ -1,0 +1,141 @@
+/* PaperTrail Document Viewer Styles & Jump-to-Source Overlay (FR-21, FR-22) */
+
+.viewer-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: #0f131c;
+  overflow: hidden;
+}
+
+.viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 10;
+}
+
+.viewer-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.viewer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.viewer-scroll-canvas {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  position: relative;
+}
+
+/* Page Container */
+.pdf-page-container {
+  position: relative;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+  background: #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  margin-bottom: 24px;
+  line-height: 0;
+}
+
+.react-pdf__Page {
+  position: relative !important;
+  line-height: 0;
+}
+
+.react-pdf__Page__canvas {
+  display: block !important;
+  border-radius: 4px;
+}
+
+/* Page Fallback Notice (Case B: Scanned documents) */
+.page-fallback-banner {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(99, 102, 241, 0.95);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  z-index: 20;
+  animation: fadeInDown 0.3s ease;
+}
+
+/* Jump-to-Source Highlight Box (Case A: Text-native PDF precise coordinates) */
+.citation-highlight-box {
+  position: absolute;
+  background: rgba(234, 179, 8, 0.35); /* Warm yellow highlight */
+  border: 2px solid #eab308;
+  border-radius: 3px;
+  pointer-events: none;
+  z-index: 25;
+  box-shadow: 0 0 15px rgba(234, 179, 8, 0.5);
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 15px 6px rgba(234, 179, 8, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(234, 179, 8, 0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Document Upload Dropzone */
+.dropzone-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 40px;
+  text-align: center;
+  border: 2px dashed var(--border-subtle);
+  border-radius: var(--radius-lg);
+  margin: 24px;
+  background: rgba(18, 24, 36, 0.4);
+  transition: all 0.2s ease;
+}
+
+.dropzone-container:hover {
+  border-color: var(--border-active);
+  background: rgba(99, 102, 241, 0.05);
+}
