@@ -18,6 +18,7 @@ import {
   Scale,
   FileEdit,
   User,
+  FileText,
 } from 'lucide-react';
 import './styles/index.css';
 
@@ -53,6 +54,7 @@ export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('qa');
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [uploadedFile, setUploadedFile] = useState<File | string | null>('/fixtures/rental_agreement.pdf');
+  const [documentName, setDocumentName] = useState<string>('Sample: Rental Lease (PDF)');
   const [rawText, setRawText] = useState<string>('');
   const [clauses, setClauses] = useState<DocumentClause[]>([]);
   const [detectedVertical, setDetectedVertical] = useState<LegalVertical>('rental');
@@ -81,6 +83,8 @@ export const App: React.FC = () => {
   }, []);
 
   async function loadSampleContract(fileName: string, vertical: LegalVertical) {
+    const found = SAMPLE_CONTRACTS.find((c) => c.file === fileName);
+    setDocumentName(found ? found.label : fileName);
     try {
       setUploadedFile(`/fixtures/${fileName}`);
       setRawText('');
@@ -239,6 +243,40 @@ export const App: React.FC = () => {
         </div>
       </header>
 
+      {/* Active Document Context Bar */}
+      <div className="active-doc-bar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600 }}>
+            Active Contract:
+          </span>
+          <div className="active-doc-pill">
+            <FileText size={14} color="var(--accent-primary)" />
+            <span style={{ maxWidth: 320, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {documentName}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              ({clauses.length} clauses)
+            </span>
+          </div>
+          <span className={`vertical-tag ${detectedVertical}`}>
+            {detectedVertical}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => setIsUploadModalOpen(true)}
+            style={{ padding: '4px 10px', fontSize: '0.75rem', gap: 5 }}
+            title="Upload another contract or choose a sample"
+          >
+            <UploadCloud size={13} />
+            <span>Replace / Upload Document</span>
+          </button>
+        </div>
+      </div>
+
       {/* Main View Area */}
       <main style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
         {activeTab === 'qa' && (
@@ -273,7 +311,7 @@ export const App: React.FC = () => {
 
         {activeTab === 'legalaid' && <LegalAidNavigator />}
 
-        {activeTab === 'drafting' && <DraftingView />}
+        {activeTab === 'drafting' && <DraftingView userName={currentUser?.name} />}
       </main>
 
       {/* Upload Document Modal */}
@@ -282,11 +320,13 @@ export const App: React.FC = () => {
         onClose={() => setIsUploadModalOpen(false)}
         onDocumentLoaded={(file, extractedClauses, vertical, textFallback) => {
           setUploadedFile(file);
+          setDocumentName(typeof file === 'string' ? 'Custom Contract' : file.name);
           setRawText(textFallback || '');
           setClauses(extractedClauses);
           setDetectedVertical(vertical);
           setCitationTarget(null);
         }}
+        onSelectSample={loadSampleContract}
       />
 
       {/* User Login & Registration Modal */}

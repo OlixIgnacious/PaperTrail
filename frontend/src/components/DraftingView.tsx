@@ -250,14 +250,30 @@ ${p.senderName}`,
   },
 ];
 
-export const DraftingView: React.FC = () => {
+interface DraftingViewProps {
+  userName?: string;
+}
+
+export const DraftingView: React.FC<DraftingViewProps> = ({ userName }) => {
   const [selectedTemplate, setSelectedTemplate] = useState<NoticeTemplate>(NOTICE_TEMPLATES[0]);
-  const [params, setParams] = useState(NOTICE_TEMPLATES[0].defaultParams);
+  const [params, setParams] = useState({
+    ...NOTICE_TEMPLATES[0].defaultParams,
+    ...(userName ? { senderName: userName } : {}),
+  });
   const [copied, setCopied] = useState(false);
+
+  React.useEffect(() => {
+    if (userName) {
+      setParams((prev) => ({ ...prev, senderName: userName }));
+    }
+  }, [userName]);
 
   function handleSelectTemplate(tpl: NoticeTemplate) {
     setSelectedTemplate(tpl);
-    setParams(tpl.defaultParams);
+    setParams({
+      ...tpl.defaultParams,
+      ...(userName ? { senderName: userName } : {}),
+    });
   }
 
   const generatedNotice = selectedTemplate.generateText(params);
