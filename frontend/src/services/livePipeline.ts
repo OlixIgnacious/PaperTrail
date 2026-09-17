@@ -119,24 +119,31 @@ ${statuteMatches.length > 0 ? JSON.stringify(statuteMatches, null, 2) : 'No stat
 USER QUESTION:
 "${question}"`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
-
+  const models = ['gemini-flash-latest', 'gemini-3.1-flash-lite'];
   let res: Response | null = null;
-  for (let attempt = 0; attempt < 3; attempt++) {
-    res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.0, responseMimeType: 'application/json' },
-      }),
-    });
-    if (res.ok) break;
-    if (res.status === 503 || res.status === 429) {
-      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
-      continue;
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.0, responseMimeType: 'application/json' },
+          }),
+        });
+        if (res.ok) break;
+        if (res.status === 503 || res.status === 429) {
+          await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+          continue;
+        }
+      } catch {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      break;
     }
-    break;
+    if (res && res.ok) break;
   }
 
   if (!res || !res.ok) {
@@ -178,23 +185,32 @@ Respond with ONLY valid JSON:
   "reason": "One concise sentence explaining why."
 }`;
 
-  const res = await fetch('https://api.mistral.ai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${MISTRAL_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'open-mistral-7b',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.0,
-      max_tokens: 120,
-      response_format: { type: 'json_object' },
-    }),
-  });
+  const models = ['open-mistral-7b', 'ministral-8b-latest'];
+  let res: Response | null = null;
+  for (const model of models) {
+    try {
+      res = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${MISTRAL_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.0,
+          max_tokens: 120,
+          response_format: { type: 'json_object' },
+        }),
+      });
+      if (res.ok) break;
+    } catch {
+      // try next model
+    }
+  }
 
-  if (!res.ok) {
-    throw new Error(`Mistral API returned status ${res.status}`);
+  if (!res || !res.ok) {
+    throw new Error(`Mistral API returned status ${res?.status}`);
   }
 
   const data = await res.json();

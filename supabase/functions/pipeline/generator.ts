@@ -76,23 +76,39 @@ USER QUESTION:
 "${question}"
 `;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiApiKey}`;
+  const models = ['gemini-flash-latest', 'gemini-3.1-flash-lite'];
+  let response: Response | null = null;
+  for (const model of models) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+              temperature: 0.0,
+              responseMimeType: 'application/json',
+            },
+          }),
+        });
+        if (response.ok) break;
+        if (response.status === 503 || response.status === 429) {
+          await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+      } catch {
+        await new Promise((r) => setTimeout(r, 1000));
+      }
+      break;
+    }
+    if (response && response.ok) break;
+  }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.0,
-        responseMimeType: 'application/json',
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini Flash Generation API error: ${response.status} - ${errorText}`);
+  if (!response || !response.ok) {
+    const errorText = response ? await response.text() : 'No response';
+    throw new Error(`Gemini Flash Generation API error: ${response?.status} - ${errorText}`);
   }
 
   const resJson = await response.json();

@@ -83,21 +83,25 @@ USER QUESTION:
 "{question}"
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={GEMINI_KEY}"
-    
-    # Retry on temporary 503 high demand or 429
+    models_to_try = ["gemini-flash-latest", "gemini-3.1-flash-lite"]
     res = None
-    for attempt in range(5):
-        res = requests.post(url, json={
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"temperature": 0.0, "responseMimeType": "application/json"},
-        }, timeout=25)
-        if res.status_code == 200:
+    for model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_KEY}"
+        for attempt in range(3):
+            try:
+                res = requests.post(url, json={
+                    "contents": [{"parts": [{"text": prompt}]}],
+                    "generationConfig": {"temperature": 0.0, "responseMimeType": "application/json"},
+                }, timeout=25)
+                if res.status_code == 200:
+                    break
+                if res.status_code in (503, 429):
+                    time.sleep(min(10, 2 * (attempt + 1)))
+                    continue
+            except Exception:
+                time.sleep(2)
+        if res is not None and res.status_code == 200:
             break
-        if res.status_code in (503, 429):
-            time.sleep(min(15, 3 * (attempt + 1)))
-            continue
-        break
 
     assert res is not None and res.status_code == 200, f"Gemini generation error: {res.text if res else 'No response'}"
     content = res.json()["candidates"][0]["content"]["parts"][0]["text"]
