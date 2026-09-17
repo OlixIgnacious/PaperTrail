@@ -22,12 +22,18 @@ export const STOP_WORDS = new Set([
   'your', 'yours', 'yourself', 'yourselves', 'inside', 'apartment', 'house', 'room',
 ]);
 
+const keywordCache = new Map<string, string[]>();
+
 /**
- * Extracts substantive search tokens from cleaned query text.
+ * Extracts substantive search tokens from cleaned query text with memoization.
  */
 export function extractKeywords(text: string): string[] {
+  if (keywordCache.has(text)) return keywordCache.get(text)!;
   const clean = text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
-  return clean.split(/\s+/).filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
+  const tokens = clean.split(/\s+/).filter((w) => w.length >= 3 && !STOP_WORDS.has(w));
+  if (keywordCache.size > 100) keywordCache.clear();
+  keywordCache.set(text, tokens);
+  return tokens;
 }
 
 /**

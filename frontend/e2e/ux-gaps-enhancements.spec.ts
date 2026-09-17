@@ -94,5 +94,31 @@ test.describe('PaperTrail UX Gaps & High-Impact Enhancements', () => {
     await resetBtn.click();
     await expect(page.getByText(/Session Conversation/i)).not.toBeVisible();
   });
+
+  test('should support direct contract text paste and clause extraction (FR-1)', async ({ page }) => {
+    // Open Upload Modal
+    await page.getByRole('button', { name: /Upload Document/i }).first().click();
+    await expect(page.getByRole('heading', { name: 'Upload Legal Document' })).toBeVisible();
+
+    // Switch to Paste Contract Text tab (FR-1)
+    await page.getByRole('button', { name: /Paste Contract Text \(FR-1\)/i }).click();
+
+    // Select sample excerpt 'Tenancy Deposit Terms'
+    await page.getByRole('button', { name: 'Tenancy Deposit Terms' }).click();
+
+    // Verify textarea populated
+    const textarea = page.getByLabel('Contract text input');
+    await expect(textarea).not.toBeEmpty();
+
+    // Click Extract & Analyze Clauses
+    await page.getByRole('button', { name: /Extract & Analyze Clauses/i }).click();
+
+    // Modal should close and active document header should display pasted title
+    await expect(page.getByRole('heading', { name: 'Upload Legal Document' })).not.toBeVisible();
+    await expect(page.locator('.active-doc-bar')).toContainText('Residential Tenancy Agreement');
+    await expect(page.locator('.active-doc-bar')).toContainText('clauses');
+    await expect(page.locator('.active-doc-bar')).toContainText('rental');
+  });
 });
+
 

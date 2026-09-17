@@ -321,7 +321,12 @@ export const App: React.FC = () => {
         onClose={() => setIsUploadModalOpen(false)}
         onDocumentLoaded={(file, extractedClauses, vertical, textFallback) => {
           setUploadedFile(file);
-          setDocumentName(typeof file === 'string' ? 'Custom Contract' : file.name);
+          const name = typeof file === 'string'
+            ? (file.startsWith('/fixtures/')
+                ? (SAMPLE_CONTRACTS.find((c) => `/fixtures/${c.file}` === file)?.label || 'Contract')
+                : (file || 'Custom Contract'))
+            : file.name;
+          setDocumentName(name);
           setRawText(textFallback || '');
           setClauses(extractedClauses);
           setDetectedVertical(vertical);

@@ -21,10 +21,19 @@ export function detectVerticalFromText(text: string): LegalVertical {
   return 'rental';
 }
 
+// Session-scoped in-memory extraction cache (Efficiency: 0ms re-extraction, Zero Persistence NFR-1)
+const pdfExtractionCache = new Map<string, { clauses: DocumentClause[]; detectedVertical: LegalVertical }>();
+const textExtractionCache = new Map<string, DocumentClause[]>();
+
 export async function extractClausesFromPdfFile(file: File): Promise<{
   clauses: DocumentClause[];
   detectedVertical: LegalVertical;
 }> {
+  const cacheKey = `${file.name}_${file.size}_${file.lastModified}`;
+  if (pdfExtractionCache.has(cacheKey)) {
+    return pdfExtractionCache.get(cacheKey)!;
+  }
+
   const arrayBuffer = await file.arrayBuffer();
   const loadingTask = pdfjs.getDocument({ data: arrayBuffer });
   const pdfDoc = await loadingTask.promise;
@@ -125,16 +134,23 @@ export async function extractClausesFromPdfFile(file: File): Promise<{
   }
 
   const detectedVertical = detectVerticalFromText(fullText);
-  return { clauses, detectedVertical };
+  const result = { clauses, detectedVertical };
+  pdfExtractionCache.set(cacheKey, result);
+  return result;
 }
 
 export async function extractClausesFromText(rawText: string, _fileName: string): Promise<DocumentClause[]> {
+  const cacheKey = `${rawText.length}_${rawText.slice(0, 100)}`;
+  if (textExtractionCache.has(cacheKey)) {
+    return textExtractionCache.get(cacheKey)!;
+  }
+
   const paragraphs = rawText
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter((p) => p.length > 20);
 
-  return paragraphs.map((text, idx) => {
+  const result = paragraphs.map((text, idx) => {
     const category = categorizeClauseText(text);
     return {
       clause_id: `CL_${idx + 1}`,
@@ -146,6 +162,9 @@ export async function extractClausesFromText(rawText: string, _fileName: string)
       },
     };
   });
+
+  textExtractionCache.set(cacheKey, result);
+  return result;
 }
 
 export function categorizeClauseText(text: string): ClauseCategory {
