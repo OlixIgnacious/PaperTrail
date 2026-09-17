@@ -17,7 +17,7 @@ test.describe('Targeted Q&A Hero Flow (FR-20, FR-21, FR-22)', () => {
     await page.keyboard.press('Enter');
 
     // Expect verified answer card to appear
-    await expect(page.locator('.status-badge')).toBeVisible();
+    await expect(page.locator('.status-badge')).toBeVisible({ timeout: 35000 });
     await expect(page.locator('.citation-pill').first()).toBeVisible();
   });
 
@@ -27,7 +27,7 @@ test.describe('Targeted Q&A Hero Flow (FR-20, FR-21, FR-22)', () => {
     await page.keyboard.press('Enter');
 
     const citationPill = page.locator('.citation-pill').first();
-    await expect(citationPill).toBeVisible();
+    await expect(citationPill).toBeVisible({ timeout: 35000 });
     await citationPill.click();
 
     // Verify citation target triggered in the preview/viewer

@@ -4,7 +4,7 @@
 import React from 'react';
 import { DocumentClause, LegalVertical } from '../types/index.ts';
 import { CURATED_RULES } from '../data/curatedRules.ts';
-import { CheckCircle, ShieldAlert, FileText, AlertTriangle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { CheckCircle, ShieldAlert, FileText, AlertTriangle, ArrowRight, ShieldCheck, Printer } from 'lucide-react';
 
 interface DocumentReportProps {
   clauses: DocumentClause[];
@@ -116,11 +116,22 @@ export const DocumentReport: React.FC<DocumentReportProps> = ({ clauses, vertica
 
   return (
     <div className="view-container">
-      <div style={{ marginBottom: 24 }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Document Health & Risk Report</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
-          Statutory compliance audit across {clauses.length} extracted clauses mapped against the curated Indian legal framework.
-        </p>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+        <div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Document Health & Risk Report</h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: 4 }}>
+            Statutory compliance audit across {clauses.length} extracted clauses mapped against the curated Indian legal framework.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={() => window.print()}
+          style={{ padding: '8px 14px', fontSize: '0.85rem', gap: 6 }}
+        >
+          <Printer size={15} />
+          <span>Print / Save PDF Report</span>
+        </button>
       </div>
 
       {/* Top Metrics Cards */}

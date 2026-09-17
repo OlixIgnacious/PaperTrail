@@ -14,6 +14,10 @@ import {
   ExternalLink,
   Sparkles,
   Lock,
+  Copy,
+  Check,
+  FileEdit,
+  Scale,
 } from 'lucide-react';
 
 interface TargetedQAProps {
@@ -23,15 +27,41 @@ interface TargetedQAProps {
   detectedVertical: LegalVertical;
   onOpenUpload?: () => void;
   activeDocumentName?: string;
+  onNavigateTab?: (tab: 'qa' | 'report' | 'compare' | 'legalaid' | 'drafting') => void;
 }
 
-const SAMPLE_QUESTIONS = [
-  'What is the notice period for terminating this contract?',
-  'How much security deposit is required and when is it refundable?',
-  'Does the agreement contain any non-compete or penalty clauses?',
-  'Are there any arbitrary account deactivation conditions?',
-  'Who is responsible for repairs and maintenance charges?',
-];
+const VERTICAL_QUESTIONS: Record<LegalVertical, string[]> = {
+  rental: [
+    'What is the notice period for terminating this lease agreement?',
+    'What is the security deposit cap under the Model Tenancy Act?',
+    'Can the landlord deduct painting or repair costs from my deposit?',
+    'Who is responsible for major structural repairs vs minor maintenance?',
+  ],
+  employment: [
+    'Is the 2-year post-termination non-compete clause legally enforceable in India?',
+    'What are the statutory rules for notice period buyout and salary in lieu?',
+    'Can an employer legally forfeit earned salary or statutory gratuity?',
+    'What are the statutory working hours and overtime rules under the Labour Code?',
+  ],
+  gig: [
+    'Can the aggregator platform arbitrarily deactivate my delivery account?',
+    'What is the statutory cap on aggregator commission fees under MoRTH 2020?',
+    'What appeal mechanisms exist against algorithmic rating penalties?',
+    'Does the platform provide accidental injury or life insurance coverage?',
+  ],
+  consumer: [
+    'Can the manufacturer deny warranty service for lack of original retail box?',
+    'What is the statutory product replacement timeline under CPA 2019?',
+    'Can I file a consumer complaint online on e-Daakhil without hiring a lawyer?',
+    'Who is strictly liable for a defective unit: seller or manufacturer?',
+  ],
+  challan: [
+    'What is the statutory compounding fine for speeding under the Motor Vehicles Act?',
+    'Can traffic police impound my vehicle or seize my physical driving license?',
+    'What is the timeline to contest an electronic e-challan in virtual court?',
+    'Is a camera-based e-challan contestable if speed detection is disputed?',
+  ],
+};
 
 export const TargetedQA: React.FC<TargetedQAProps> = ({
   documentClauses,
@@ -39,10 +69,20 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
   onSelectCitation,
   detectedVertical,
   onOpenUpload,
+  onNavigateTab,
 }) => {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<QAResponse | null>(null);
+  const [copiedAnswer, setCopiedAnswer] = useState(false);
+
+  function handleCopyAnswer(text: string) {
+    navigator.clipboard.writeText(text);
+    setCopiedAnswer(true);
+    setTimeout(() => setCopiedAnswer(false), 2000);
+  }
+
+  const sampleQuestions = VERTICAL_QUESTIONS[detectedVertical] || VERTICAL_QUESTIONS.rental;
 
   async function handleAsk(q: string) {
     if (!q.trim() || loading) return;
@@ -113,7 +153,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
 
       {/* Suggested Quick Questions */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-        {SAMPLE_QUESTIONS.slice(0, 3).map((sq, idx) => (
+        {sampleQuestions.slice(0, 4).map((sq, idx) => (
           <button
             key={idx}
             className="btn-secondary"
@@ -184,12 +224,24 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
                   Confidence: {Math.round(response.confidence * 100)}%
                 </span>
               </div>
-              {response.safety.piiRedacted && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  <Lock size={12} />
-                  PII Redacted
-                </div>
-              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => handleCopyAnswer(response.answer)}
+                  style={{ padding: '3px 8px', fontSize: '0.75rem', gap: 4 }}
+                  title="Copy verified answer to clipboard"
+                >
+                  {copiedAnswer ? <Check size={12} color="var(--status-verified)" /> : <Copy size={12} />}
+                  <span>{copiedAnswer ? 'Copied!' : 'Copy Answer'}</span>
+                </button>
+                {response.safety.piiRedacted && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                    <Lock size={12} />
+                    PII Redacted
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* English Answer */}
@@ -242,6 +294,37 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Next Legal Remedies Action Box */}
+            <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 14, marginTop: 4 }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 600, marginBottom: 8 }}>
+                Recommended Action Pathways:
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {onNavigateTab && (
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => onNavigateTab('drafting')}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', gap: 6 }}
+                  >
+                    <FileEdit size={14} />
+                    <span>Draft Statutory Demand Notice</span>
+                  </button>
+                )}
+                {onNavigateTab && (
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => onNavigateTab('legalaid')}
+                    style={{ padding: '6px 12px', fontSize: '0.8rem', gap: 6 }}
+                  >
+                    <Scale size={14} color="var(--accent-primary)" />
+                    <span>Find Free Legal Aid (DLSA)</span>
+                  </button>
+                )}
+              </div>
+            </div>
 
             {/* Verifier Audit Notes */}
             {response.verificationNotes && (

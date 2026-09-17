@@ -2,7 +2,7 @@
 // Template-assembled legal notices from vetted clause library (stops at "ready to print/post", no auto-submission)
 
 import React, { useState } from 'react';
-import { FileEdit, Printer, Copy, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { FileEdit, Printer, Copy, Check, Sparkles, AlertCircle, Download } from 'lucide-react';
 
 interface NoticeTemplate {
   id: string;
@@ -288,6 +288,18 @@ export const DraftingView: React.FC<DraftingViewProps> = ({ userName }) => {
     window.print();
   }
 
+  function handleDownloadTxt() {
+    const blob = new Blob([generatedNotice], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `PaperTrail_Notice_${selectedTemplate.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="view-container">
       <div style={{ marginBottom: 24 }}>
@@ -472,6 +484,10 @@ export const DraftingView: React.FC<DraftingViewProps> = ({ userName }) => {
               <button className="btn-secondary" onClick={handleCopy} style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
                 {copied ? <Check size={14} color="var(--status-verified)" /> : <Copy size={14} />}
                 <span>{copied ? 'Copied to Clipboard' : 'Copy Notice'}</span>
+              </button>
+              <button className="btn-secondary" onClick={handleDownloadTxt} style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
+                <Download size={14} />
+                <span>Download (.txt)</span>
               </button>
               <button className="btn-primary" onClick={handlePrint} style={{ padding: '8px 14px', fontSize: '0.85rem' }}>
                 <Printer size={14} />
