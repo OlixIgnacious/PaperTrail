@@ -309,7 +309,9 @@ export const App: React.FC = () => {
           <DocumentReport clauses={clauses} vertical={detectedVertical} />
         )}
 
-        {activeTab === 'compare' && <CompareView />}
+        {activeTab === 'compare' && (
+          <CompareView activeClauses={clauses} activeDocumentName={documentName} />
+        )}
 
         {activeTab === 'legalaid' && <LegalAidNavigator />}
 

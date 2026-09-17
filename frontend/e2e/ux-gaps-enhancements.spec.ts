@@ -147,6 +147,44 @@ test.describe('PaperTrail UX Gaps & High-Impact Enhancements', () => {
     await page.getByRole('button', { name: 'Close', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Prepare for a Legal Professional & Action Checklist' })).not.toBeVisible();
   });
+
+  test('should run real-time document comparison and calculate risk shift across benchmark and custom contracts (Use Case 2)', async ({ page }) => {
+    await page.goto('http://localhost:5173');
+    await page.waitForLoadState('networkidle');
+
+    // Switch to Compare tab
+    await page.getByRole('button', { name: 'Compare' }).click();
+    await expect(page.getByRole('heading', { name: /Multi-Revision Document Comparison/i })).toBeVisible();
+
+    // Verify dynamic benchmark comparison calculation
+    await expect(page.getByText(/Risk Shift:/i)).toBeVisible();
+    await expect(page.getByText(/Regressed/i).first()).toBeVisible();
+    await expect(page.getByText(/Aligned/i).first()).toBeVisible();
+    await expect(page.getByText(/Legal Impact:/i).first()).toBeVisible();
+
+    // Switch preset to Employment
+    const empPresetBtn = page.getByRole('button', { name: /Employment Offer/i });
+    await empPresetBtn.click();
+    await expect(page.getByText(/Baseline Offer Letter vs Separation & Restraint Annexure/i)).toBeVisible();
+    await expect(page.getByText(/Post-Termination Non-Compete/i).first()).toBeVisible();
+
+    // Switch to Custom Document Comparison Mode
+    await page.getByRole('button', { name: 'Compare My Own Documents' }).click();
+    await expect(page.getByText(/Custom Contract Comparison Inputs/i)).toBeVisible();
+
+    // Fill Document A and Document B
+    const textareas = page.locator('textarea');
+    await textareas.nth(0).fill('Clause 1: Either party may terminate with 30 days notice.');
+    await textareas.nth(1).fill('Clause 1: Tenant must provide 90 days notice and forfeit security deposit.');
+
+    // Run custom comparison
+    const runBtn = page.getByRole('button', { name: /Run Real-Time Comparison/i });
+    await runBtn.click();
+
+    // Verify custom diff results generated dynamically
+    await expect(page.getByText(/Notice period increased from 30 days to 90 days/i)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /Copy Comparison/i })).toBeVisible();
+  });
 });
 
 

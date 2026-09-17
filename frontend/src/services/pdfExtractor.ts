@@ -167,26 +167,192 @@ export async function extractClausesFromText(rawText: string, _fileName: string)
   return result;
 }
 
+interface SemanticCategoryProfile {
+  category: ClauseCategory;
+  primaryTokens: Array<{ term: string; weight: number }>;
+  contextualPatterns: RegExp[];
+}
+
+const SEMANTIC_PROFILES: SemanticCategoryProfile[] = [
+  {
+    category: 'payment_terms',
+    primaryTokens: [
+      { term: 'rent', weight: 4 },
+      { term: 'deposit', weight: 4 },
+      { term: 'salary', weight: 4 },
+      { term: 'remuneration', weight: 4 },
+      { term: 'consideration', weight: 3 },
+      { term: 'arrears', weight: 3 },
+      { term: 'payout', weight: 3 },
+      { term: 'gratuity', weight: 4 },
+      { term: 'ctc', weight: 3 },
+      { term: 'compensation', weight: 3 },
+      { term: 'reimbursement', weight: 3 },
+      { term: 'escrow', weight: 4 },
+    ],
+    contextualPatterns: [
+      /payable\s+(?:on|by|before)\s+the\s+\d+/i,
+      /(?:security\s+deposit|earnest\s+money)\s+(?:of|amounting|refundable)/i,
+      /per\s+(?:month|annum|mensem|diem)/i,
+      /(?:gross|basic)\s+(?:salary|pay|emoluments)/i,
+    ],
+  },
+  {
+    category: 'termination',
+    primaryTokens: [
+      { term: 'terminate', weight: 4 },
+      { term: 'termination', weight: 4 },
+      { term: 'notice period', weight: 5 },
+      { term: 'vacate', weight: 4 },
+      { term: 'relieve', weight: 4 },
+      { term: 'resignation', weight: 4 },
+      { term: 'severance', weight: 4 },
+      { term: 'separation', weight: 3 },
+      { term: 'handover', weight: 3 },
+      { term: 'eviction', weight: 4 },
+      { term: 'expiry', weight: 3 },
+    ],
+    contextualPatterns: [
+      /(?:written\s+notice\s+of|\d+\s+days?\s+notice)/i,
+      /terminate\s+this\s+agreement/i,
+      /(?:vacate|hand\s*over)\s+(?:the\s+premises|peaceful\s+possession)/i,
+      /without\s+assigning\s+(?:any\s+)?reasons?/i,
+    ],
+  },
+  {
+    category: 'liability',
+    primaryTokens: [
+      { term: 'indemnify', weight: 5 },
+      { term: 'indemnity', weight: 5 },
+      { term: 'hold harmless', weight: 5 },
+      { term: 'liability', weight: 4 },
+      { term: 'damages', weight: 3 },
+      { term: 'structural', weight: 4 },
+      { term: 'waterproofing', weight: 4 },
+      { term: 'negligence', weight: 4 },
+      { term: 'repair', weight: 3 },
+      { term: 'defective', weight: 3 },
+    ],
+    contextualPatterns: [
+      /indemnif(?:y|ication)\s+(?:and\s+keep\s+indemnified|against\s+all)/i,
+      /limitation\s+of\s+liability/i,
+      /structural\s+(?:repairs?|defects?|alterations?)/i,
+      /shall\s+not\s+be\s+(?:liable|responsible)\s+for/i,
+    ],
+  },
+  {
+    category: 'penalty',
+    primaryTokens: [
+      { term: 'penalty', weight: 5 },
+      { term: 'liquidated damages', weight: 5 },
+      { term: 'forfeit', weight: 4 },
+      { term: 'forfeiture', weight: 4 },
+      { term: 'interest on default', weight: 5 },
+      { term: 'late fee', weight: 4 },
+      { term: 'penal interest', weight: 5 },
+      { term: 'deduction', weight: 2 },
+      { term: 'non-compete', weight: 4 },
+      { term: 'lock-in', weight: 4 },
+    ],
+    contextualPatterns: [
+      /subject\s+to\s+a\s+penalty/i,
+      /liquidated\s+damages/i,
+      /(?:forfeiture|forfeit)\s+of\s+(?:entire\s+deposit|security|dues)/i,
+      /interest\s+(?:at|@)\s+\d+%/i,
+      /lock-in\s+period/i,
+    ],
+  },
+  {
+    category: 'dispute_resolution',
+    primaryTokens: [
+      { term: 'arbitration', weight: 5 },
+      { term: 'arbitrator', weight: 5 },
+      { term: 'jurisdiction', weight: 4 },
+      { term: 'tribunal', weight: 4 },
+      { term: 'mediation', weight: 4 },
+      { term: 'conciliation', weight: 4 },
+      { term: 'exclusive jurisdiction', weight: 5 },
+      { term: 'rent authority', weight: 5 },
+    ],
+    contextualPatterns: [
+      /arbitration\s+and\s+conciliation\s+act/i,
+      /sole\s+arbitrator/i,
+      /exclusive\s+jurisdiction\s+of\s+the\s+courts/i,
+      /disputes?\s+arising\s+out\s+of\s+or\s+in\s+connection/i,
+      /rent\s+tribunal\s+at/i,
+    ],
+  },
+  {
+    category: 'procedural_validity',
+    primaryTokens: [
+      { term: 'stamp duty', weight: 5 },
+      { term: 'notarized', weight: 4 },
+      { term: 'registration', weight: 4 },
+      { term: 'sub-registrar', weight: 5 },
+      { term: 'attestation', weight: 4 },
+      { term: 'stamp paper', weight: 4 },
+      { term: 'witnesses', weight: 3 },
+      { term: 'in witness whereof', weight: 5 },
+    ],
+    contextualPatterns: [
+      /indian\s+stamp\s+act/i,
+      /registered\s+(?:under|with)\s+(?:the\s+sub-registrar|registration\s+act)/i,
+      /in\s+witness\s+whereof/i,
+      /signed,\s+sealed\s+and\s+delivered/i,
+    ],
+  },
+  {
+    category: 'obligations',
+    primaryTokens: [
+      { term: 'covenant', weight: 4 },
+      { term: 'undertaking', weight: 4 },
+      { term: 'confidentiality', weight: 4 },
+      { term: 'quiet enjoyment', weight: 5 },
+      { term: 'inspection', weight: 3 },
+      { term: 'compliance', weight: 3 },
+    ],
+    contextualPatterns: [
+      /tenant\s+(?:covenants|undertakes|agrees)\s+to/i,
+      /employee\s+shall\s+(?:devote|perform|observe)/i,
+      /quiet\s+and\s+peaceable\s+possession/i,
+      /non-disclosure\s+of\s+confidential/i,
+    ],
+  },
+];
+
+/**
+ * Semantic multi-token concept classifier with obligation syntax pattern evaluation.
+ * Evaluates semantic relevance scores across categories rather than naive substring matching.
+ */
 export function categorizeClauseText(text: string): ClauseCategory {
   const lower = text.toLowerCase();
-  if (lower.includes('rent') || lower.includes('deposit') || lower.includes('payment') || lower.includes('salary') || lower.includes('fee')) {
-    return 'payment_terms';
+  let bestCategory: ClauseCategory = 'obligations';
+  let highestScore = 0;
+
+  for (const profile of SEMANTIC_PROFILES) {
+    let score = 0;
+
+    // 1. Primary concept token matches with specific weights
+    for (const token of profile.primaryTokens) {
+      if (lower.includes(token.term)) {
+        score += token.weight;
+      }
+    }
+
+    // 2. Syntactic & contextual legal obligation patterns (boost factor: 6)
+    for (const pattern of profile.contextualPatterns) {
+      if (pattern.test(text)) {
+        score += 6;
+      }
+    }
+
+    if (score > highestScore) {
+      highestScore = score;
+      bestCategory = profile.category;
+    }
   }
-  if (lower.includes('terminate') || lower.includes('notice') || lower.includes('quit') || lower.includes('reliev')) {
-    return 'termination';
-  }
-  if (lower.includes('liable') || lower.includes('indemn') || lower.includes('damage') || lower.includes('loss')) {
-    return 'liability';
-  }
-  if (lower.includes('penalty') || lower.includes('fine') || lower.includes('deduct') || lower.includes('forfeit')) {
-    return 'penalty';
-  }
-  if (lower.includes('court') || lower.includes('arbitrat') || lower.includes('jurisdiction') || lower.includes('dispute')) {
-    return 'dispute_resolution';
-  }
-  if (lower.includes('valid') || lower.includes('stamp') || lower.includes('notar') || lower.includes('regist')) {
-    return 'procedural_validity';
-  }
-  return 'obligations';
+
+  // Fallback to obligations if score threshold is below minimum confidence
+  return highestScore >= 2 ? bestCategory : 'obligations';
 }
 

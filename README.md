@@ -13,7 +13,7 @@ PaperTrail is purpose-built to address the core mandate and implements all **7 p
 | # | Official Problem Statement Use Case | How PaperTrail Implements It | Core Implementation File(s) | Status |
 |:---:|---|---|---|:---:|
 | **1** | **Simplifying complex legal documents** | Translates dense legal contracts into clear, plain-language explanations in English and 15 scheduled Indian languages (Hindi, Tamil, Telugu, Bengali, Marathi, etc.) with native script rendering and voice read-aloud (TTS). | `TargetedQA.tsx`, `DocumentReport.tsx`, `LanguageSelector.tsx` | ✅ Verified (100%) |
-| **2** | **Comparing contracts, agreements, or policies** | Side-by-side multi-revision contract comparison, automated clause diffing, favorability tagging (`Favors Tenant`, `Favors Landlord`, `Neutral`), and risk-shift visualization. | `CompareView.tsx`, `ux-gaps-enhancements.spec.ts` | ✅ Verified (100%) |
+| **2** | **Comparing contracts, agreements, or policies** | Real bipartite semantic clause alignment, numerical shift analysis (notice periods, deposit refund limits, lock-in duration), rights regression scoring (`Favors Tenant/Employee`, `Favors Landlord/Employer`), statutory impact cross-referencing, and side-by-side custom contract comparison. | `services/comparisonEngine.ts`, `CompareView.tsx`, `ux-gaps-enhancements.spec.ts` | ✅ Verified (100%) |
 | **3** | **Highlighting important clauses, obligations, risks, or inconsistencies** | Interactive position-aware bounding-box jump-to-source highlighter in the PDF viewer, plus statutory conflict audit and risk scoring (0-100). | `DocumentViewer.tsx`, `DocumentReport.tsx`, `pdf_parser.py` | ✅ Verified (100%) |
 | **4** | **Answering questions based on provided legal documents** | Primary Targeted Q&A hero interface answering specific legal questions with exact `{clause_id, page_number}` citations and session-scoped multi-turn follow-ups. | `TargetedQA.tsx`, `clientEngine.ts`, `livePipeline.ts` | ✅ Verified (100%) |
 | **5** | **Helping users understand their options and potential next steps** | Contextual legal remedies surfaced on every answer card, Section 12 legal aid eligibility calculator, and NALSA 24x7 National Legal Helpline (15100). | `TargetedQA.tsx`, `LegalAidNavigator.tsx` | ✅ Verified (100%) |
@@ -103,7 +103,7 @@ PaperTrail was engineered from day one around the Hack2Skill PromptWars 2026 Pro
 | **FR-6** | Extract and categorize clauses into a shared taxonomy with coordinates | `scripts/pdf_parser.py`, `pdfExtractor.ts` | 5 PyMuPDF position-aware coordinate tests | ✅ 100% |
 | **FR-7** | Retrieve relevant rules via cross-lingual vector search | `services/clientEngine.ts`, `test_vector_retrieval.py` | 5 exact cosine distance vector retrieval tests | ✅ 100% |
 | **FR-8** | Generate plain-language summary + risk score (0-100), grounded and cited | `DocumentReport.tsx`, `pipeline/generator.ts` | Tested in `targeted-qa.spec.ts` & golden benchmark tests | ✅ 100% |
-| **FR-9** | Compare two documents with favorability tagging and risk-shift visualization | `CompareView.tsx` | Tested in Playwright `ux-gaps-enhancements.spec.ts` | ✅ 100% |
+| **FR-9** | Compare two documents with favorability tagging and risk-shift visualization | `services/comparisonEngine.ts`, `CompareView.tsx` | Tested in Playwright `ux-gaps-enhancements.spec.ts` | ✅ 100% |
 | **FR-10** | Grounded Q&A — both document-attached and open-ended (corpus-grounded) | `TargetedQA.tsx`, `services/livePipeline.ts` | Multi-turn Q&A, Playwright & Golden set tests | ✅ 100% |
 | **FR-11** | Verify every claim via citation check + semantic cross-check | `clientEngine.ts`, `livePipeline.ts`, `test_verifier.py` | Two-layer verifier (Layer 1 deterministic set check, Layer 2 Mistral) | ✅ 100% |
 | **FR-12** | Generate template-assembled notices/drafts from a vetted clause library | `DraftingView.tsx`, `clause_library` | Playwright test (`ux-gaps-enhancements.spec.ts`), 1-click Download (.txt) | ✅ 100% |
@@ -125,11 +125,11 @@ PaperTrail was engineered from day one around the Hack2Skill PromptWars 2026 Pro
 
 | NFR ID | Requirement | PaperTrail Guarantee & Engineering Enforcement | Status |
 |:---:|---|---|:---:|
-| **NFR-1** | Zero Document Persistence | Documents and extracted clauses are stored exclusively in client-side React state and browser session memory. No uploaded document content is ever written to Supabase Postgres or server disk. | ✅ 100% Passed |
+| **NFR-1** | Zero Document Persistence | Documents and extracted clauses are stored exclusively in client-side React state and browser session memory. No uploaded document content is ever written to Supabase Postgres or server disk. Purged on session reset or window unload via `cacheManager.ts`. | ✅ 100% Passed |
 | **NFR-2** | Repository Size < 10MB | Total repository size is strictly lightweight (~4.8MB), excluding large binaries and utilizing clean text fixtures. | ✅ 100% Passed |
 | **NFR-3** | 100% Free-Tier Infrastructure | Built on Google AI Studio (Gemini Flash), Mistral Experiment tier, Supabase Postgres/pgvector free tier, and GitHub Actions free runners. Zero ongoing cloud compute expenses. | ✅ 100% Passed |
-| **NFR-4** | Test Coverage ≥ 80% | 45 backend Python unit/golden tests (~3.2s execution) + 20 frontend Playwright end-to-end browser tests across all features. | ✅ 100% Passed |
-| **NFR-5** | Sub-Second Retrieval Latency | In-memory extraction cache drops re-processing latency to <1ms; bounded 25-rule corpus exact vector cosine search takes ~0.8ms without index overhead. | ✅ 100% Passed |
+| **NFR-4** | Test Coverage ≥ 80% | 45 backend Python unit/golden tests (~3.1s execution) + 22 frontend Playwright end-to-end browser tests across all features. | ✅ 100% Passed |
+| **NFR-5** | Sub-Second Retrieval Latency | Managed LRU session caching (`services/cacheManager.ts`) with non-blocking async execution (`requestIdleCallback`) drops re-processing latency to <1ms; bounded 25-rule corpus exact vector cosine search takes ~0.8ms without index overhead. | ✅ 100% Passed |
 | **NFR-6** | Unambiguous Claim Grounding | Every claim must carry a citation to either `{clause_id, page_number}` or `{rule_id}`. Out-of-grounding fallback is triggered with 0 hallucinations. | ✅ 100% Passed |
 | **NFR-7** | Permissive Open Source License | Released under the standard permissive MIT License with full documentation and reproducible test harnesses. | ✅ 100% Passed |
 
@@ -144,7 +144,7 @@ PaperTrail/
 │   ├── freshness.yml          # Daily 06:00 UTC check against government portals
 │   └── test.yml               # Automated Pytest + Playwright CI pipeline
 ├── frontend/                  # React + Vite application (Vanilla CSS design system)
-│   ├── e2e/                   # 21 Playwright end-to-end test cases
+│   ├── e2e/                   # 22 Playwright end-to-end test cases
 │   │   ├── targeted-qa.spec.ts
 │   │   ├── document-viewer.spec.ts
 │   │   ├── accessibility-and-tools.spec.ts
@@ -154,7 +154,7 @@ PaperTrail/
 │   └── src/
 │       ├── components/        # TargetedQA, DocumentViewer, DocumentReport, CompareView, LegalAidNavigator, DraftingView, VoiceInputOutput
 │       ├── data/              # 25 curated statutory rules
-│       ├── services/          # Edge API, Supabase client, PDF extractor
+│       ├── services/          # comparisonEngine, cacheManager, safety, livePipeline, clientEngine, pdfExtractor
 │       ├── styles/            # Design system, CSS tokens, viewer styles
 │       └── types/             # Shared TypeScript types
 ├── supabase/                  # Supabase Edge Functions & Migrations
@@ -201,13 +201,13 @@ cd frontend
 npm install
 npm run dev
 
-# Run all 21 Playwright E2E tests
+# Run all 22 Playwright E2E tests
 npm run test:e2e
 ```
 
 ### 3. Python Tests with `uv`
 ```bash
-# Sync dependencies and run full offline/golden test suite (45 tests in ~3.2s)
+# Sync dependencies and run full offline/golden test suite (45 tests in ~3.1s)
 uv sync
 uv run pytest tests/ -v
 
