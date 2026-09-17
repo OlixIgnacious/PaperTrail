@@ -119,6 +119,35 @@ test.describe('PaperTrail UX Gaps & High-Impact Enhancements', () => {
     await expect(page.locator('.active-doc-bar')).toContainText('clauses');
     await expect(page.locator('.active-doc-bar')).toContainText('rental');
   });
+
+  test('should support Prepare for Lawyer & Action Checklist modal (Use Cases 5, 6, 7)', async ({ page }) => {
+    // Ask a starter question to get an answer card
+    const questionBtn = page.getByRole('button', { name: /What is the notice period for terminating this lease agreement/i });
+    await questionBtn.click();
+    await expect(page.locator('.status-badge')).toBeVisible({ timeout: 40000 });
+
+    // Click "Prepare for Lawyer & Action Checklist" button
+    const prepBtn = page.getByRole('button', { name: /Prepare for Lawyer & Action Checklist/i });
+    await expect(prepBtn).toBeVisible();
+    await prepBtn.click();
+
+    // Verify modal elements
+    await expect(page.getByRole('heading', { name: 'Prepare for a Legal Professional & Action Checklist' })).toBeVisible();
+    await expect(page.getByText(/Legal Assistance Notice:/i)).toBeVisible();
+    await expect(page.getByText(/Evidentiary Document Checklist/i)).toBeVisible();
+    await expect(page.getByText(/Key Questions to Ask Your Advocate/i)).toBeVisible();
+
+    // Verify Copy Lawyer Brief and Share via WhatsApp buttons
+    const copyBriefBtn = page.getByRole('button', { name: /Copy Lawyer Brief/i });
+    await expect(copyBriefBtn).toBeVisible();
+    await copyBriefBtn.click();
+    await expect(page.getByRole('button', { name: /Copied Brief!/i })).toBeVisible();
+
+    // Close modal
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Prepare for a Legal Professional & Action Checklist' })).not.toBeVisible();
+  });
 });
+
 
 

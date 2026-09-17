@@ -289,6 +289,7 @@ export const App: React.FC = () => {
                 onSelectCitation={(target) => setCitationTarget({ ...target })}
                 detectedVertical={detectedVertical}
                 onOpenUpload={() => setIsUploadModalOpen(true)}
+                activeDocumentName={documentName}
                 onNavigateTab={setActiveTab}
               />
             </section>

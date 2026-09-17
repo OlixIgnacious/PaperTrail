@@ -21,7 +21,9 @@ import {
   MessageCircle,
   RotateCcw,
   History,
+  ClipboardCheck,
 } from 'lucide-react';
+import { LawyerPrepModal } from './LawyerPrepModal.tsx';
 
 interface TargetedQAProps {
   documentClauses: DocumentClause[];
@@ -72,6 +74,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
   onSelectCitation,
   detectedVertical,
   onOpenUpload,
+  activeDocumentName,
   onNavigateTab,
 }) => {
   const [question, setQuestion] = useState('');
@@ -79,6 +82,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
   const [response, setResponse] = useState<QAResponse | null>(null);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
   const [history, setHistory] = useState<{ question: string; response: QAResponse }[]>([]);
+  const [isLawyerPrepOpen, setIsLawyerPrepOpen] = useState(false);
 
   function handleCopyAnswer(text: string) {
     navigator.clipboard.writeText(text);
@@ -402,6 +406,16 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
                     <span>Find Free Legal Aid (DLSA)</span>
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setIsLawyerPrepOpen(true)}
+                  style={{ padding: '6px 12px', fontSize: '0.8rem', gap: 6 }}
+                  title="Generate actionable checklist and questions for an advocate"
+                >
+                  <ClipboardCheck size={14} color="var(--accent-primary)" />
+                  <span>Prepare for Lawyer & Action Checklist</span>
+                </button>
               </div>
             </div>
 
@@ -424,6 +438,17 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
           </div>
         )}
       </div>
+
+      <LawyerPrepModal
+        isOpen={isLawyerPrepOpen}
+        onClose={() => setIsLawyerPrepOpen(false)}
+        detectedVertical={detectedVertical}
+        documentTitle={documentClauses[0]?.clause_id ? (activeDocumentName || 'Active Legal Document') : 'Legal Matter'}
+        lastQuestion={question}
+        lastAnswer={response?.answer}
+        citations={response?.citations}
+        onNavigateTab={onNavigateTab}
+      />
     </div>
   );
 };
