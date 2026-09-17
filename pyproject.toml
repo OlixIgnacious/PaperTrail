@@ -17,3 +17,8 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 pythonpath = ["."]
+markers = [
+    "live: mark tests that require external live APIs (Gemini/Mistral)",
+]
+addopts = "-m 'not live'"
+

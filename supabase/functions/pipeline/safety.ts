@@ -9,6 +9,8 @@ export interface SafetyResult {
     pan: number;
     phone: number;
     bankAccount: number;
+    voterId: number;
+    drivingLicense: number;
   };
 }
 
@@ -17,6 +19,8 @@ const AADHAAR_REGEX = /\b[2-9]{1}[0-9]{3}\s?[0-9]{4}\s?[0-9]{4}\b/g;
 const PAN_REGEX = /\b[A-Z]{5}[0-9]{4}[A-Z]{1}\b/g;
 const PHONE_REGEX = /(?:\+?91[\-\s]?)?[6-9]\d{9}\b/g;
 const BANK_ACCOUNT_REGEX = /\b\d{9,18}\b/g; // 9 to 18 digit bank account numbers
+const VOTER_ID_REGEX = /\b[A-Z]{3}[0-9]{7}\b/g;
+const DRIVING_LICENSE_REGEX = /\b[A-Z]{2}[0-9]{2}\s?[0-9]{11}\b/g;
 
 // Prompt injection patterns to detect and neutralize
 const INJECTION_PATTERNS = [
@@ -35,6 +39,8 @@ export function redactPII(text: string): { sanitized: string; count: SafetyResul
   let panCount = 0;
   let phoneCount = 0;
   let bankCount = 0;
+  let voterIdCount = 0;
+  let dlCount = 0;
 
   sanitized = sanitized.replace(AADHAAR_REGEX, () => {
     aadhaarCount++;
@@ -60,6 +66,16 @@ export function redactPII(text: string): { sanitized: string; count: SafetyResul
     return match;
   });
 
+  sanitized = sanitized.replace(VOTER_ID_REGEX, () => {
+    voterIdCount++;
+    return '[REDACTED_VOTER_ID]';
+  });
+
+  sanitized = sanitized.replace(DRIVING_LICENSE_REGEX, () => {
+    dlCount++;
+    return '[REDACTED_DRIVING_LICENSE]';
+  });
+
   return {
     sanitized,
     count: {
@@ -67,6 +83,8 @@ export function redactPII(text: string): { sanitized: string; count: SafetyResul
       pan: panCount,
       phone: phoneCount,
       bankAccount: bankCount,
+      voterId: voterIdCount,
+      drivingLicense: dlCount,
     },
   };
 }
@@ -99,7 +117,9 @@ export function processInputSafety(rawInput: string): SafetyResult {
     redactedCount.aadhaar > 0 ||
     redactedCount.pan > 0 ||
     redactedCount.phone > 0 ||
-    redactedCount.bankAccount > 0;
+    redactedCount.bankAccount > 0 ||
+    redactedCount.voterId > 0 ||
+    redactedCount.drivingLicense > 0;
 
   return {
     cleanedText: sanitized,
@@ -108,3 +128,4 @@ export function processInputSafety(rawInput: string): SafetyResult {
     redactedCount,
   };
 }
+

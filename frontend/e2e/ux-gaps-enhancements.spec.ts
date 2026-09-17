@@ -64,4 +64,35 @@ test.describe('PaperTrail UX Gaps & High-Impact Enhancements', () => {
     const printBtn = page.getByRole('button', { name: 'Print / Save PDF Report' });
     await expect(printBtn).toBeVisible();
   });
+
+  test('should support 1-click WhatsApp Share and multi-turn session conversation tracking', async ({ page }) => {
+    // Ask starter question
+    const questionBtn = page.getByRole('button', { name: /What is the notice period for terminating this lease agreement/i });
+    await questionBtn.click();
+
+    // Wait for response
+    await expect(page.locator('.status-badge')).toBeVisible({ timeout: 40000 });
+
+    // Verify Share via WhatsApp button is present
+    const whatsappBtn = page.getByRole('button', { name: /Share via WhatsApp/i });
+    await expect(whatsappBtn).toBeVisible();
+
+    // Verify Session Conversation banner appears with 1 query
+    await expect(page.getByText(/Session Conversation \(1 query\)/i)).toBeVisible();
+
+    // Ask a second question
+    const input = page.getByLabel('Legal question input');
+    await input.fill('Can this notice period be waived?');
+    await page.getByRole('button', { name: 'Send Question' }).click();
+
+    // Verify Session Conversation updates to 2 queries
+    await expect(page.getByText(/Session Conversation \(2 queries\)/i)).toBeVisible({ timeout: 40000 });
+
+    // Verify Reset Context button clears session conversation
+    const resetBtn = page.getByRole('button', { name: /Reset Context/i });
+    await expect(resetBtn).toBeVisible();
+    await resetBtn.click();
+    await expect(page.getByText(/Session Conversation/i)).not.toBeVisible();
+  });
 });
+

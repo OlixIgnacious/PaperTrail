@@ -8,4 +8,15 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'pdf-viewer': ['react-pdf', 'pdfjs-dist'],
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-icons': ['lucide-react'],
+        },
+      },
+    },
+  },
 });

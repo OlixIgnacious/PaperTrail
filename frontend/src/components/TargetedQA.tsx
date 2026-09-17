@@ -18,6 +18,9 @@ import {
   Check,
   FileEdit,
   Scale,
+  MessageCircle,
+  RotateCcw,
+  History,
 } from 'lucide-react';
 
 interface TargetedQAProps {
@@ -75,11 +78,27 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<QAResponse | null>(null);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
+  const [history, setHistory] = useState<{ question: string; response: QAResponse }[]>([]);
 
   function handleCopyAnswer(text: string) {
     navigator.clipboard.writeText(text);
     setCopiedAnswer(true);
     setTimeout(() => setCopiedAnswer(false), 2000);
+  }
+
+  function handleWhatsAppShare(resp: QAResponse, query: string) {
+    const citationText = resp.citations?.length
+      ? `\n*Citation:* ${resp.citations.map((c) => c.citation_label).join(', ')}`
+      : '';
+    const text = `📋 *PaperTrail Legal Verification*\n\n*Question:* ${query || 'Legal Inquiry'}\n\n*Answer:* ${resp.answer}${citationText}\n\n_Verified by PaperTrail AI Legal Assistant (Grounded & Cited)_`;
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  function handleClearSession() {
+    setHistory([]);
+    setResponse(null);
+    setQuestion('');
   }
 
   const sampleQuestions = VERTICAL_QUESTIONS[detectedVertical] || VERTICAL_QUESTIONS.rental;
@@ -90,13 +109,20 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
     onSelectCitation(null as any);
 
     try {
+      const conversationHistory = history.slice(-2).map((h) => ({
+        question: h.question,
+        answer: h.response.answer,
+      }));
+
       const res = await askQuestion({
         question: q,
         language: selectedLanguage,
         documentClauses,
         filterVertical: detectedVertical,
+        conversationHistory,
       });
       setResponse(res);
+      setHistory((prev) => [...prev, { question: q, response: res }]);
     } catch (err) {
       console.error('QA request error:', err);
     } finally {
@@ -174,6 +200,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
           <input
             type="text"
             className="qa-input"
+            aria-label="Legal question input"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -209,6 +236,48 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
         </button>
       </div>
 
+      {/* Session Conversation Banner */}
+      {history.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 10,
+            padding: '6px 12px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--border-subtle)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <History size={13} color="var(--accent-primary)" />
+            <span>
+              Session Conversation ({history.length} {history.length === 1 ? 'query' : 'queries'})
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={handleClearSession}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--text-muted)',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 4,
+              padding: '2px 6px',
+            }}
+            title="Reset conversation context for this session"
+          >
+            <RotateCcw size={11} />
+            <span>Reset Context</span>
+          </button>
+        </div>
+      )}
+
       {/* Answer & Evidence Display Container */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {response ? (
@@ -224,7 +293,7 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
                   Confidence: {Math.round(response.confidence * 100)}%
                 </span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <button
                   type="button"
                   className="btn-secondary"
@@ -234,6 +303,16 @@ export const TargetedQA: React.FC<TargetedQAProps> = ({
                 >
                   {copiedAnswer ? <Check size={12} color="var(--status-verified)" /> : <Copy size={12} />}
                   <span>{copiedAnswer ? 'Copied!' : 'Copy Answer'}</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => handleWhatsAppShare(response, question)}
+                  style={{ padding: '3px 8px', fontSize: '0.75rem', gap: 4 }}
+                  title="Share verified legal answer via WhatsApp"
+                >
+                  <MessageCircle size={12} color="#25D366" />
+                  <span>Share via WhatsApp</span>
                 </button>
                 {response.safety.piiRedacted && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: '0.75rem', color: 'var(--text-muted)' }}>

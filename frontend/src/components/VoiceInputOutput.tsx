@@ -38,8 +38,12 @@ export const VoiceInputOutput: React.FC<VoiceProps> = ({
 }) => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [unsupportedNotice, setUnsupportedNotice] = useState(false);
 
   const locale = LANGUAGE_LOCALES[lang] || 'en-IN';
+  const isSttSupported =
+    typeof window !== 'undefined' &&
+    Boolean((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
 
   useEffect(() => {
     // Reset speaking state if window.speechSynthesis ends
@@ -52,13 +56,14 @@ export const VoiceInputOutput: React.FC<VoiceProps> = ({
   }, []);
 
   function toggleSpeechRecognition() {
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      alert('Speech Recognition is not supported by your browser.');
+    if (!isSttSupported) {
+      setUnsupportedNotice(true);
+      setTimeout(() => setUnsupportedNotice(false), 4000);
       return;
     }
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (isListening) {
       setIsListening(false);
@@ -112,27 +117,62 @@ export const VoiceInputOutput: React.FC<VoiceProps> = ({
   }
 
   return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, position: 'relative' }}>
       {showStt && onTranscript && (
-        <button
-          type="button"
-          className="btn-secondary"
-          onClick={toggleSpeechRecognition}
-          title={isListening ? 'Listening... click to stop' : `Voice Input STT (${locale})`}
-          style={{
-            padding: '8px 10px',
-            background: isListening ? 'rgba(239, 68, 68, 0.2)' : undefined,
-            borderColor: isListening ? 'var(--status-unverified)' : undefined,
-            animation: isListening ? 'pulseGlow 1.5s infinite' : undefined,
-          }}
-          aria-label={isListening ? 'Stop listening' : 'Start voice input'}
-        >
-          {isListening ? (
-            <MicOff size={15} color="var(--status-unverified)" />
-          ) : (
-            <Mic size={15} />
+        <>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={toggleSpeechRecognition}
+            title={
+              !isSttSupported
+                ? 'Voice input is supported in Chrome, Edge, and Safari'
+                : isListening
+                ? 'Listening... click to stop'
+                : `Voice Input STT (${locale})`
+            }
+            style={{
+              padding: '8px 10px',
+              background: isListening ? 'rgba(239, 68, 68, 0.2)' : undefined,
+              borderColor: isListening ? 'var(--status-unverified)' : undefined,
+              animation: isListening ? 'pulseGlow 1.5s infinite' : undefined,
+              opacity: !isSttSupported ? 0.75 : 1,
+            }}
+            aria-label={
+              !isSttSupported
+                ? 'Voice input is supported in Chrome, Edge, and Safari'
+                : isListening
+                ? 'Stop listening'
+                : 'Start voice input'
+            }
+          >
+            {isListening ? (
+              <MicOff size={15} color="var(--status-unverified)" />
+            ) : (
+              <Mic size={15} />
+            )}
+          </button>
+          {unsupportedNotice && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '110%',
+                left: 0,
+                zIndex: 50,
+                padding: '6px 10px',
+                fontSize: '0.72rem',
+                color: '#fff',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--accent-primary)',
+                borderRadius: 'var(--radius-sm)',
+                whiteSpace: 'nowrap',
+                boxShadow: 'var(--shadow-md)',
+              }}
+            >
+              Voice input is supported in Chrome, Edge, and Safari
+            </div>
           )}
-        </button>
+        </>
       )}
 
       {showTts && textToRead && (
