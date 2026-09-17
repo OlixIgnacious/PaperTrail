@@ -83,7 +83,7 @@ USER QUESTION:
 "{question}"
 """
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={GEMINI_KEY}"
     
     # Retry on temporary 503 high demand or 429
     res = None

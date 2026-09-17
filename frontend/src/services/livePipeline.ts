@@ -119,7 +119,7 @@ ${statuteMatches.length > 0 ? JSON.stringify(statuteMatches, null, 2) : 'No stat
 USER QUESTION:
 "${question}"`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
   let res: Response | null = null;
   for (let attempt = 0; attempt < 3; attempt++) {
